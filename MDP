@@ -1,0 +1,82 @@
+# Идея MDP: "Поиск сокровищ"
+# Представим, что у нас есть агент, который ищет сокровища на квадратном поле. Поле состоит из 5x5 клеток, и агент может перемещаться по нему в четырех направлениях (вверх, вниз, влево, вправо). В некоторых клетках находятся сокровища, а в других — ловушки.
+# 1. Описание состояний MDP
+# Состояния будут представлять позиции агента на поле. В нашем случае состояния можно описать как координаты (x, y):
+# Состояния: (0,0), (0,1), (0,2), (0,3), (0,4), ..., (4,4) (всего 25 состояний).
+# 2. Описание действий MDP
+# Агент может выполнять следующие действия:
+# • Вверх (если не на верхней границе)
+# • Вниз (если не на нижней границе)
+# • Влево (если не на левой границе)
+# • Вправо (если не на правой границе)
+# 3. Описание наград MDP
+# Награды могут быть следующими:
+# • +10 за нахождение сокровища.
+# • -10 за попадание в ловушку.
+# • -1 за каждое движение (чтобы поощрять агента находить сокровища быстрее).
+# • 0 за обычные клетки без сокровищ или ловушек.
+
+import numpy as np
+import random
+
+class TreasureHuntMDP:
+    def __init__(self):
+        self.grid_size = 5
+        self.states = [(x, y) for x in range(self.grid_size) for y in range(self.grid_size)]
+        self.current_state = (0, 0)  # Начальное состояние агента
+        self.actions = ['Вверх', 'Вниз', 'Влево', 'Вправо']
+        
+        # Определяем сокровища и ловушки
+        self.treasures = {(1, 1), (3, 3)}
+        self.traps = {(0, 4), (4, 0)}
+        
+    def reset(self):
+        self.current_state = (0, 0)
+
+    def step(self, action):
+        x, y = self.current_state
+        
+        if action == 'Вверх' and x > 0:
+            x -= 1
+        elif action == 'Вниз' and x < self.grid_size - 1:
+            x += 1
+        elif action == 'Влево' and y > 0:
+            y -= 1
+        elif action == 'Вправо' and y < self.grid_size - 1:
+            y += 1
+        
+        self.current_state = (x, y)
+        
+        return self.get_reward()
+
+    def get_reward(self):
+        if self.current_state in self.treasures:
+            return 10
+        elif self.current_state in self.traps:
+            return -10
+        else:
+            return -1
+
+    def get_state(self):
+        return self.current_state
+
+    def is_terminal(self):
+        return self.current_state in self.treasures or self.current_state in self.traps
+
+def main():
+    mdp = TreasureHuntMDP()
+    episodes = 5
+
+    for episode in range(episodes):
+        mdp.reset()
+        print(f"Эпизод {episode + 1}: Начальное состояние: {mdp.get_state()}")
+
+        while not mdp.is_terminal():
+            action = random.choice(mdp.actions)  # Случайный выбор действия
+            reward = mdp.step(action)
+            print(f"Действие: {action}, Новое состояние: {mdp.get_state()}, Награда: {reward}")
+
+        print(f"Эпизод {episode + 1} завершен. Конечное состояние: {mdp.get_state()}n")
+
+if __name__ == "__main__":
+    main()
